@@ -8,7 +8,14 @@ public class PMat : ICM3D2Serializable, ISummarizable
 	//Unsure, unused
 	public int version;
 
+	/// <summary>
+	/// This is the hash of the corresponding mate file name <see cref="Mate.name"/>. 
+	/// </summary>
+	/// <remarks>Shouldn't be confused with <see cref="materialName"/>, which is a copy of the mate file name, not the actual usage.</remarks>
 	public int hash;
+	/// <summary>
+	/// The name of the corresponding <see cref="Mate.name"/>.
+	/// </summary>
 	public string materialName;
 	public float renderQueue;
 	//Unused
