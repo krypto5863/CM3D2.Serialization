@@ -154,6 +154,46 @@ namespace CM3D2.Serialization.Types
 			}
 		}
 
+		public class KeywordsProperty : Property
+		{
+			public static readonly string Type = "keyword";
+			public override string type => Type;
+
+			public int count;
+			public List<KeywordProperty> keywords;
+
+			protected override void ReadWith(ICM3D2Reader reader)
+			{
+				keywords.Clear();
+
+				reader.Read(out count);
+				for (int i = 0; i < count; i++)
+				{
+					var keyword = new KeywordProperty();
+					reader.Read(out keyword.keyword);
+					reader.Read(out keyword.state);
+					keywords.Add(keyword);
+				}
+			}
+
+			protected override void WriteWith(ICM3D2Writer writer)
+			{
+				count = keywords.Count;
+				writer.Write(count);
+				foreach (var keywordProperty in keywords)
+				{
+					writer.Write(keywordProperty.keyword);
+					writer.Write(keywordProperty.state);
+				}
+			}
+
+			public class KeywordProperty
+			{
+				public string keyword;
+				public bool state;
+			}
+		}
+
 		public readonly string endTag = "end";
 
 		void ICM3D2Serializable.ReadWith(ICM3D2Reader reader)
@@ -185,6 +225,11 @@ namespace CM3D2.Serialization.Types
 				else if (propType == FProperty.Type)
 				{
 					reader.Read(out FProperty newProp);
+					prop = newProp;
+				}
+				else if (propType == KeywordsProperty.Type)
+				{
+					reader.Read(out KeywordsProperty newProp);
 					prop = newProp;
 				}
 #pragma warning restore CM3D2Serialization031 // Field Read / Write out of Order

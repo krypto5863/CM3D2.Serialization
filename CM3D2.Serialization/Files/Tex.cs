@@ -1,6 +1,7 @@
 ﻿using CM3D2.Serialization.Collections;
 using CM3D2.Serialization.Types;
 using System;
+using System.CodeDom;
 
 namespace CM3D2.Serialization.Files;
 
@@ -20,40 +21,71 @@ public class Tex : ICM3D2Serializable
 	public LengthDefinedArray<Float4> uvRects = new();
 
 	[FileVersionConstraint(1010)]
-	public int width;
+	public int width = -1;
 
 	[FileVersionConstraint(1010)]
-	public int height;
+	public int height = -1;
 
 	[FileVersionConstraint(1010)]
-	public int format;
+	public int format = -1;
 
 	public int imageDataSize;
 
 	[LengthDefinedBy("imageDataSize")]
+	//<summary>Typically you'll want to pass the results of EncodeToPNG here and set format to ARGB32.</summary>
 	public LengthDefinedArray<byte> imageData = new();
 
 	public void WriteWith(ICM3D2Writer writer)
 	{
+		if (width >= 0 || height >= 0 || format >= 0)
+		{
+			version = uvRectCount >= 0 ? 1011 : 1010;
+
+			if (width <= -1)
+			{
+				throw new InvalidOperationException("Format or Height is set but width is not");
+			}
+			if (height <= -1)
+			{
+				throw new InvalidOperationException("Format or Width is set but height is not");
+			}
+			if (format <= -1)
+			{
+				throw new InvalidOperationException("Width or Height is set but format is not");
+			}
+		}
+		else
+		{
+			version = 1000;
+
+			if (uvRectCount >= 0)
+			{
+				throw new InvalidOperationException("uvRectCount is set but width, height, and format are not defined.");
+			}
+			if (imageDataSize < 24)
+			{
+				throw new InvalidOperationException("imageDataSize is less than 24 bytes, which is not valid for version 1000.");
+			}
+		}
+
 		writer.Write(signature);
 		writer.Write(version);
 		writer.Write(unknown);
 
-		if (uvRectCount >= 0)
+		if (version >= 1011)
 		{
-			version = 1011;
 			writer.Write(uvRectCount);
 			uvRects.ValidateLength(uvRectCount, "uvRects", "uvRectCount");
 			writer.Write(uvRects);
 		}
-		else
+
+		if (version >= 1010)
 		{
-			version = 1010;
+			writer.Write(width);
+			writer.Write(height);
+			writer.Write(format);
 		}
 
-		writer.Write(width);
-		writer.Write(height);
-		writer.Write(format);
 		writer.Write(imageDataSize);
 		imageData.ValidateLength(imageDataSize, "imageData", "imageDataSize");
 		writer.Write(imageData);
