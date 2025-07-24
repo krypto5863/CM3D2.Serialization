@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CM3D2.Serialization.Collections;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -159,38 +160,41 @@ namespace CM3D2.Serialization.Types
 			public static readonly string Type = "keyword";
 			public override string type => Type;
 
-			public int count;
-			public List<KeywordProperty> keywords;
+			public int keywordCount;
+
+			[LengthDefinedBy(nameof(keywordCount))]
+			public LengthDefinedList<KeywordProperty> keywords;
 
 			protected override void ReadWith(ICM3D2Reader reader)
 			{
-				keywords.Clear();
-
-				reader.Read(out count);
-				for (int i = 0; i < count; i++)
-				{
-					var keyword = new KeywordProperty();
-					reader.Read(out keyword.keyword);
-					reader.Read(out keyword.state);
-					keywords.Add(keyword);
-				}
+				reader.Read(out keywordCount);
+				keywords.SetLength(keywordCount);
+				reader.Read(ref keywords);
 			}
 
 			protected override void WriteWith(ICM3D2Writer writer)
 			{
-				count = keywords.Count;
-				writer.Write(count);
-				foreach (var keywordProperty in keywords)
-				{
-					writer.Write(keywordProperty.keyword);
-					writer.Write(keywordProperty.state);
-				}
+				keywordCount = keywords.Count;
+				writer.Write(keywordCount);
+				keywords.ValidateLength(keywordCount, nameof(keywords), nameof(keywordCount));
+				writer.Write(keywords);
 			}
 
-			public class KeywordProperty
+			public struct KeywordProperty : ICM3D2Serializable
 			{
 				public string keyword;
-				public bool state;
+				public bool active;
+				public void WriteWith(ICM3D2Writer writer)
+				{
+					writer.Write(keyword);
+					writer.Write(active);
+				}
+
+				public void ReadWith(ICM3D2Reader reader)
+				{
+					reader.Read(out keyword);
+					reader.Read(out active);
+				}
 			}
 		}
 

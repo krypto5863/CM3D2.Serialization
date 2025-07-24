@@ -17,7 +17,7 @@ public class Tex : ICM3D2Serializable
 	public int uvRectCount;
 
 	[FileVersionConstraint(1011)]
-	[LengthDefinedBy("uvRectCount")]
+	[LengthDefinedBy(nameof(uvRectCount))]
 	public LengthDefinedArray<Float4> uvRects = new();
 
 	[FileVersionConstraint(1010)]
@@ -31,7 +31,7 @@ public class Tex : ICM3D2Serializable
 
 	public int imageDataSize;
 
-	[LengthDefinedBy("imageDataSize")]
+	[LengthDefinedBy(nameof(imageDataSize))]
 	//<summary>Typically you'll want to pass the results of EncodeToPNG here and set format to ARGB32.</summary>
 	public LengthDefinedArray<byte> imageData = new();
 
